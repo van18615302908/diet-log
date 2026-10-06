@@ -1,0 +1,15 @@
+# 个人数据，只留在本地
+profile.json
+data/
+photos/
+inbox/*
+!inbox/.gitkeep
+web/data.js
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.HEIC
+!docs/*.png
+.DS_Store
+__pycache__/

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>饮食记录</title>
+<style>
+:root{
+  --bg:#f6f5f1;--card:#fff;--ink:#1f2328;--muted:#6b7078;--line:#e6e3dc;
+  --kcal:#d9772b;--pro:#2f7fd1;--carb:#c9a227;--fat:#b4517a;--wt:#2e9b6b;--over:#d24b3e;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#16181b;--card:#1f2226;--ink:#e8e6e1;--muted:#9aa0a8;--line:#2e3237;
+  --kcal:#ef9a55;--pro:#62a6ec;--carb:#e0bf4f;--fat:#d77ba1;--wt:#4fc28f;--over:#ef6b5e;}}
+:root[data-theme="dark"]{
+  --bg:#16181b;--card:#1f2226;--ink:#e8e6e1;--muted:#9aa0a8;--line:#2e3237;
+  --kcal:#ef9a55;--pro:#62a6ec;--carb:#e0bf4f;--fat:#d77ba1;--wt:#4fc28f;--over:#ef6b5e;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"PingFang SC",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 16px 60px}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+h1{font-size:22px;margin:0;flex:1}
+h2{font-size:14px;color:var(--muted);font-weight:600;margin:0 0 12px;letter-spacing:.04em}
+.nav{display:flex;align-items:center;gap:6px}
+.nav button,.nav input{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}
+@media (max-width:820px){.s8,.s6,.s4{grid-column:span 12}}
+.big{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
+.sub{color:var(--muted);font-size:13px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:4px 0 12px}
+.bar i{display:block;height:100%;border-radius:4px}
+.row{display:flex;justify-content:space-between;font-size:13px;font-variant-numeric:tabular-nums}
+.body-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.body-grid div{background:var(--bg);border-radius:10px;padding:10px}
+.body-grid b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.meal{border-top:1px solid var(--line);padding:14px 0}
+.meal:first-of-type{border-top:0;padding-top:0}
+.meal-h{display:flex;gap:10px;align-items:baseline;margin-bottom:6px}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.meal-h .k{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.items{font-size:14px;margin:0;padding:0;list-style:none}
+.items li{display:flex;gap:8px;padding:2px 0}
+.items .amt{color:var(--muted)}.items .n{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.est{font-size:11px;color:var(--muted)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.thumbs img{width:96px;height:96px;object-fit:cover;border-radius:10px;cursor:zoom-in;border:1px solid var(--line)}
+.empty{color:var(--muted);text-align:center;padding:28px 0}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--muted);font-size:11px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-bottom:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal div{aspect-ratio:1;border-radius:6px;background:var(--bg);font-size:11px;display:flex;align-items:flex-start;justify-content:flex-end;padding:4px;cursor:pointer;color:var(--muted)}
+.cal div.on{color:#fff}.cal div.sel{outline:2px solid var(--ink)}
+.cal .wd{background:none;aspect-ratio:auto;justify-content:center;cursor:default}
+.ntab{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 22px}
+.nrow{display:grid;grid-template-columns:72px 1fr 50px;gap:8px;align-items:center;font-size:13px;padding:5px 0;border-bottom:1px solid var(--line)}
+.nrow .v{font-variant-numeric:tabular-nums}.nrow .v small{color:var(--muted)}
+.mini{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:3px}.mini i{display:block;height:100%}
+.chip{font-size:11px;text-align:center;border-radius:99px;padding:1px 0}
+.st-达标{background:color-mix(in srgb,var(--wt) 20%,transparent);color:var(--wt)}
+.st-接近{background:color-mix(in srgb,var(--carb) 22%,transparent);color:var(--carb)}
+.st-不足{background:color-mix(in srgb,var(--pro) 20%,transparent);color:var(--pro)}
+.st-超标{background:color-mix(in srgb,var(--over) 20%,transparent);color:var(--over)}
+.st-无数据{color:var(--muted)}
+.rev{margin-top:10px;background:var(--bg);border-radius:10px;padding:10px 12px;font-size:13px}
+.rev ul{margin:4px 0 0;padding-left:2px;list-style:none}.rev li{margin:2px 0}
+.rev .g{color:var(--wt)}.rev .f{color:var(--kcal)}
+.adv{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media (max-width:820px){.adv{grid-template-columns:1fr}}
+.adv h3{font-size:13px;margin:0 0 4px}.adv ul{margin:0;padding-left:18px;font-size:14px}.adv li{margin:3px 0}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:9;cursor:zoom-out}
+#lb img{max-width:92vw;max-height:88vh;border-radius:8px}
+#lb p{position:absolute;bottom:16px;color:#ddd;font-size:13px;margin:0}
+.tip{position:fixed;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:5px 8px;border-radius:6px;display:none;z-index:5;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>饮食记录</h1>
+    <div class="nav">
+      <button id="prev">‹</button>
+      <input type="date" id="date">
+      <button id="next">›</button>
+      <button id="todayBtn">今天</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card s4" id="kcalCard"></div>
+    <div class="card s4" id="macroCard"></div>
+    <div class="card s4" id="bodyCard"></div>
+    <div class="card s12"><h2>营养素达标情况</h2><div id="nutTable"></div>
+      <div class="sub" style="margin-top:8px">目标：美国 DRI（19–30 岁男性）；热量 = 日常消耗 + 当天运动 − 减脂缺口；饱和脂肪 ≤ 10% 热量；碳水上限 = 热量目标扣掉蛋白和最低脂肪后的余量。微量营养素多为估算，看趋势别抠个位数。</div></div>
+    <div class="card s12" id="adviceCard" style="display:none"><div id="advice"></div></div>
+    <div class="card s8"><h2>当日餐食</h2><div id="meals"></div></div>
+    <div class="card s4"><h2 id="calTitle">日历</h2><div class="cal" id="cal"></div>
+      <div class="sub" style="margin-top:8px">颜色越深 = 越接近当天热量目标；红 = 超标</div></div>
+    <div class="card s6"><h2>热量 · 近 14 天 <span style="font-weight:400">（横线 = 当天目标）</span></h2><div id="kcalChart"></div></div>
+    <div class="card s6"><h2>体重 · 近 30 天</h2><div id="wtChart"></div></div>
+    <div class="card s12"><h2>三大营养素 · 近 14 天（克）</h2>
+      <div class="legend"><span><i style="background:var(--pro)"></i>蛋白质</span><span><i style="background:var(--carb)"></i>碳水</span><span><i style="background:var(--fat)"></i>脂肪</span></div>
+      <div id="macroChart"></div></div>
+    <div class="card s12" id="dayPhotosCard" style="display:none"><h2>当日其他照片</h2><div class="thumbs" id="dayPhotos"></div></div>
+  </div>
+  <p class="sub" id="foot" style="margin-top:20px"></p>
+</div>
+<div id="lb"><img><p></p></div>
+<div class="tip" id="tip"></div>
+
+<script src="web/data.js"></script>
+<script>
+const D = window.DIET_DATA || {days:[],targets:{},profile:{}};
+const byDate = Object.fromEntries(D.days.map(d => [d.date, d]));
+const iso = d => { const z = new Date(d.getTime() - d.getTimezoneOffset()*6e4); return z.toISOString().slice(0,10); };
+const addDays = (s, n) => { const d = new Date(s+'T12:00'); d.setDate(d.getDate()+n); return iso(d); };
+const todayStr = iso(new Date());
+let cur = location.hash.slice(1) || (byDate[todayStr] || !D.days.length ? todayStr : D.days[D.days.length-1].date);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const NUT = D.nutrients || [];
+const ST_COLOR = {'达标':'var(--wt)','接近':'var(--carb)','不足':'var(--pro)','超标':'var(--over)'};
+const goalText = g => !g ? '–' : g.goal!=null ? `${g.goal}` : ('min' in g && 'max' in g) ? `${g.min}–${g.max}` : 'min' in g ? `≥ ${g.min}` : `≤ ${g.max}`;
+function bar(label, val, g, color, unit, st){
+  const ref = g ? (g.goal ?? g.max ?? g.min) : 0;
+  const pct = ref ? Math.min(val/ref, 1)*100 : 0;
+  return `<div class="row"><span>${label}${st?` <span class="chip st-${st}" style="padding:1px 6px">${st}</span>`:''}</span><span>${val}${g?` / ${goalText(g)}`:''} ${unit}</span></div>
+    <div class="bar"><i style="width:${pct}%;background:${st==='超标'?'var(--over)':color}"></i></div>`;
+}
+const EMPTY = {meals:[],body:{},photos:[],exercise:[],totals:{},targets:{},status:{},coverage:{}};
+
+function renderDay(){
+  $('date').value = cur; location.hash = cur;
+  const d = byDate[cur] || EMPTY;
+  const t = d.totals, G = d.targets || {}, S = d.status || {}, info = G._info || {};
+  NUT.forEach(([k]) => t[k] ??= 0);
+  const kg = G.kcal, left = kg ? kg.goal - t.kcal : null;
+  const ex = d.exercise || [];
+  $('kcalCard').innerHTML = `<h2>热量</h2><div class="big" style="color:var(--kcal)">${t.kcal}<span class="sub"> kcal</span></div>
+    <div class="sub">${kg ? (left>=0?`目标 ${kg.goal}，还剩 ${left}`:`目标 ${kg.goal}，超出 ${-left}`) : '在 profile.json 填身体信息后显示目标'}</div>
+    ${kg?bar('进度', t.kcal, kg, 'var(--kcal)', 'kcal', S.kcal):''}
+    ${info.bmr?`<div class="sub">BMR ${info.bmr} · 日常 ${info.base} + 运动 ${info.exercise} − 缺口 ${info.deficit}</div>`:''}
+    ${ex.map(e => `<div class="sub" style="margin-top:6px">运动：${esc(e.name)} ${Math.round(e.minutes)} 分钟${e.parts?.length?`（${e.parts.map(esc).join('、')}）`:''} · 约 ${e.kcal} kcal</div>`).join('')}`;
+  const macroKcal = t.protein*4 + t.carb*4 + t.fat*9 || 1;
+  $('macroCard').innerHTML = `<h2>三大营养素</h2>
+    ${bar('蛋白质', t.protein, G.protein, 'var(--pro)', 'g', S.protein)}
+    ${bar('碳水', t.carb, G.carb, 'var(--carb)', 'g', S.carb)}
+    ${bar('脂肪', t.fat, G.fat, 'var(--fat)', 'g', S.fat)}
+    <div class="sub">供能比 蛋白 ${Math.round(t.protein*400/macroKcal)}% · 碳水 ${Math.round(t.carb*400/macroKcal)}% · 脂肪 ${Math.round(t.fat*900/macroKcal)}%</div>`;
+  $('nutTable').innerHTML = !d.meals.length ? '<div class="empty">这天还没有记录</div>' :
+    '<div class="ntab">' + NUT.filter(([k]) => !['kcal','protein','carb','fat'].includes(k)).map(([k,n,u]) => {
+      const g = G[k], st = S[k] || '', ref = g ? (g.max ?? g.min) : 0, cov = d.coverage?.[k] ?? 1;
+      const pct = ref ? Math.min(t[k]/ref,1)*100 : 0;
+      return `<div class="nrow"><span>${n}</span>
+        <div><div class="v">${st==='无数据'?'–':Math.round(t[k]*10)/10} <small>/ ${goalText(g)} ${u}${cov<.9&&cov>0?' · 数据不全':''}</small></div>
+        <div class="mini"><i style="width:${pct}%;background:${ST_COLOR[st]||'var(--muted)'}"></i></div></div>
+        <span class="chip st-${st}">${st}</span></div>`;
+    }).join('') + '</div>';
+  let b = d.body || {}, bNote = '';
+  if (b.weight_kg == null){
+    const last = D.days.filter(x => x.date < cur && x.body?.weight_kg).pop();
+    if (last){ b = {...last.body, sleep_h:b.sleep_h, steps:b.steps, water_ml:b.water_ml, note:b.note ?? last.body.note};
+      bNote = `体重/体脂当天没测，显示最近一次（${last.date}）`; }
+  }
+  const EXTRA = {bmi:['BMI',''],visceral_fat:['内脏脂肪','级'],skeletal_muscle_kg:['骨骼肌','kg'],lean_mass_kg:['去脂体重','kg'],
+    bmr_scale:['秤测BMR','kcal'],water_pct:['水分','%'],protein_pct:['蛋白质','%'],bone_kg:['骨盐','kg'],
+    waist_hip_ratio:['腰臀比',''],heart_rate:['心率','bpm'],body_age:['身体年龄','岁']};
+  const extras = Object.entries(EXTRA).filter(([k]) => b[k]!=null).map(([k,[n,u]]) => `${n} <b style="color:var(--ink)">${b[k]}</b>${u}`).join(' · ');
+  const cell = (k, v, u) => `<div><span class="sub">${k}</span><b>${v ?? '–'}</b><span class="sub">${v!=null?u:''}</span></div>`;
+  $('bodyCard').innerHTML = `<h2>身体指标</h2><div class="body-grid">
+    ${cell('体重', b.weight_kg, 'kg')}${cell('体脂', b.body_fat_pct, '%')}${cell('腰围', b.waist_cm, 'cm')}
+    ${cell('睡眠', b.sleep_h, 'h')}${cell('步数', b.steps!=null?Math.round(b.steps):null, '步')}${cell('饮水', b.water_ml!=null?Math.round(b.water_ml):null, 'ml')}
+    </div>${bNote?`<div class="sub" style="margin-top:8px">${bNote}</div>`:''}
+    ${extras?`<div class="sub" style="margin-top:8px;line-height:1.8">${extras}</div>`:''}
+    ${b.note?`<div class="sub" style="margin-top:6px">${esc(b.note)}</div>`:''}`;
+
+  $('meals').innerHTML = d.meals.length ? d.meals.map(m => `
+    <div class="meal">
+      <div class="meal-h"><span class="tag">${esc(m.type)}</span><span class="sub">${esc(m.time)}</span>
+        <span class="k">${m.totals.kcal} kcal</span></div>
+      <ul class="items">${m.items.map(i => `<li><span>${esc(i.name)}</span><span class="amt">${esc(i.amount||'')}</span>
+        ${i.src==='est'?'<span class="est">估</span>':''}
+        <span class="n">${i.kcal??'?'} kcal · P${i.protein??'?'} C${i.carb??'?'} F${i.fat??'?'}</span></li>`).join('')}</ul>
+      ${m.note?`<div class="sub">${esc(m.note)}</div>`:''}
+      ${m.review?`<div class="rev"><b>点评</b> ${m.review.score?'★'.repeat(m.review.score)+'☆'.repeat(5-m.review.score):''}
+        ${m.review.good.length?`<ul>${m.review.good.map(x=>`<li><span class="g">✓</span> ${esc(x)}</li>`).join('')}</ul>`:''}
+        ${m.review.fix.length?`<div style="margin-top:6px"><b>下次</b></div><ul>${m.review.fix.map(x=>`<li><span class="f">→</span> ${esc(x)}</li>`).join('')}</ul>`:''}</div>`:''}
+      ${m.photos?.length?`<div class="thumbs">${m.photos.map(p => `<img src="${esc(p)}" loading="lazy" data-cap="${esc(p.split('/').pop())}">`).join('')}</div>`:''}
+    </div>`).join('') : '<div class="empty">这天还没有记录</div>';
+
+  const advBlock = (a, title) => `<h2>${title}</h2>${a.summary?`<p style="margin:0 0 12px">${esc(a.summary)}</p>`:''}
+    <div class="adv"><div><h3>训练</h3><ul>${a.training.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+    <div><h3>饮食</h3><ul>${a.diet.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>`;
+  const prevAdv = byDate[addDays(cur,-1)]?.advice;
+  const blocks = [prevAdv && advBlock(prevAdv, '今天的计划（昨天定的）'), d.advice && advBlock(d.advice, '给明天的建议')].filter(Boolean);
+  $('adviceCard').style.display = blocks.length ? '' : 'none';
+  $('advice').innerHTML = blocks.join('<hr style="border:0;border-top:1px solid var(--line);margin:16px 0">');
+  const ph = d.photos || [];
+  $('dayPhotosCard').style.display = ph.length ? '' : 'none';
+  $('dayPhotos').innerHTML = ph.map(p => `<img src="${esc(p.path)}" loading="lazy" data-cap="${esc(p.desc)}">`).join('');
+  renderCal(); renderCharts();
+}
+
+function renderCal(){
+  const [y, mo] = cur.split('-').map(Number);
+  $('calTitle').textContent = `${y} 年 ${mo} 月`;
+  const first = new Date(y, mo-1, 1), n = new Date(y, mo, 0).getDate();
+  let h = ['一','二','三','四','五','六','日'].map(w => `<div class="wd">${w}</div>`).join('');
+  h += '<div class="wd"></div>'.repeat((first.getDay()+6)%7);
+  for (let i=1;i<=n;i++){
+    const ds = `${y}-${String(mo).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+    const d = byDate[ds]; let st = '';
+    if (d && d.meals.length){
+      const k = d.totals.kcal;
+      const goal = d.targets?.kcal?.goal;
+      if (d.status?.kcal === '超标') st = 'background:var(--over)';
+      else { const r = goal ? Math.min(k/goal,1) : .7; st = `background:color-mix(in srgb, var(--kcal) ${Math.round(25+r*75)}%, var(--bg))`; }
+    }
+    h += `<div class="${d&&d.meals.length?'on':''} ${ds===cur?'sel':''}" style="${st}" data-d="${ds}">${i}</div>`;
+  }
+  $('cal').innerHTML = h;
+}
+
+// ---- charts (inline SVG) ----
+const W = 520, H = 180, P = {l:34, r:8, t:10, b:22};
+function axes(maxY, labels, ticks=4){
+  let s = '';
+  for (let i=0;i<=ticks;i++){
+    const v = maxY*i/ticks, y = P.t + (H-P.t-P.b)*(1-i/ticks);
+    s += `<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${P.l-6}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  const step = Math.ceil(labels.length/7), bw = (W-P.l-P.r)/labels.length;
+  labels.forEach((l,i) => { if ((labels.length-1-i)%step===0) s += `<text x="${P.l+bw*(i+.5)}" y="${H-6}" text-anchor="middle">${l.slice(5)}</text>`; });
+  return s;
+}
+const niceMax = v => { if (v<=0) return 10; const p = Math.pow(10, Math.floor(Math.log10(v))); return Math.ceil(v/p*2)/2*p; };
+const range = n => Array.from({length:n}, (_,i) => addDays(cur, i-n+1));
+
+function renderCharts(){
+  // kcal bars
+  let days = range(14), vals = days.map(d => byDate[d]?.totals.kcal || 0);
+  const goals = days.map(d => byDate[d]?.targets?.kcal?.goal || 0);
+  let maxY = niceMax(Math.max(...vals, ...goals)), ih = H-P.t-P.b, bw = (W-P.l-P.r)/days.length;
+  let s = axes(maxY, days);
+  vals.forEach((v,i) => { if (!v) return; const h = v/maxY*ih;
+    const c = byDate[days[i]]?.status?.kcal === '超标' ? 'var(--over)' : 'var(--kcal)';
+    s += `<rect x="${P.l+bw*i+bw*.18}" y="${P.t+ih-h}" width="${bw*.64}" height="${h}" rx="3" fill="${c}" data-tip="${days[i]} · ${v} kcal"/>`; });
+  goals.forEach((g,i) => { if (!g) return; const y = P.t+ih*(1-g/maxY);
+    s += `<line x1="${P.l+bw*i+bw*.08}" x2="${P.l+bw*i+bw*.92}" y1="${y}" y2="${y}" stroke="var(--ink)" stroke-width="2" opacity=".7" data-tip="${days[i]} 目标 ${g} kcal"/>`; });
+  $('kcalChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`;
+
+  // weight line
+  days = range(30);
+  const pts = days.map((d,i) => [i, byDate[d]?.body?.weight_kg]).filter(p => p[1]);
+  if (!pts.length){ $('wtChart').innerHTML = '<div class="empty">近 30 天没有体重记录</div>'; }
+  else {
+    const ws = pts.map(p => p[1]).concat(D.profile.target_weight_kg ? [D.profile.target_weight_kg] : []);
+    const lo = Math.floor(Math.min(...ws)-1), hi = Math.ceil(Math.max(...ws)+1);
+    bw = (W-P.l-P.r)/days.length;
+    const X = i => P.l+bw*(i+.5), Y = w => P.t+ih*(1-(w-lo)/(hi-lo));
+    s = '';
+    for (let i=0;i<=4;i++){ const v = lo+(hi-lo)*i/4, y = Y(v); s += `<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${P.l-6}" y="${y+4}" text-anchor="end">${v.toFixed(1)}</text>`; }
+    const step = Math.ceil(days.length/7);
+    days.forEach((l,i) => { if ((days.length-1-i)%step===0) s += `<text x="${X(i)}" y="${H-6}" text-anchor="middle">${l.slice(5)}</text>`; });
+    if (D.profile.target_weight_kg){ const y = Y(D.profile.target_weight_kg); s += `<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="var(--wt)" stroke-dasharray="4 4" opacity=".6"/><text x="${W-P.r}" y="${y-4}" text-anchor="end">目标 ${D.profile.target_weight_kg}</text>`; }
+    s += `<polyline fill="none" stroke="var(--wt)" stroke-width="2" points="${pts.map(p => `${X(p[0])},${Y(p[1])}`).join(' ')}"/>`;
+    s += pts.map(p => `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.5" fill="var(--wt)" data-tip="${days[p[0]]} · ${p[1]} kg"/>`).join('');
+    $('wtChart').innerHTML = `<svg viewBox="0 0 ${W} ${H}">${s}</svg>`;
+  }
+
+  // macros grouped bars
+  days = range(14);
+  const keys = [['protein','var(--pro)','蛋白'],['carb','var(--carb)','碳水'],['fat','var(--fat)','脂肪']];
+  const MW = 1040;
+  maxY = niceMax(Math.max(1, ...days.flatMap(d => keys.map(k => byDate[d]?.totals[k[0]] || 0))));
+  bw = (MW-P.l-P.r)/days.length;
+  s = '';
+  for (let i=0;i<=4;i++){ const y = P.t+ih*(1-i/4); s += `<line x1="${P.l}" x2="${MW-P.r}" y1="${y}" y2="${y}" stroke="var(--line)"/><text x="${P.l-6}" y="${y+4}" text-anchor="end">${Math.round(maxY*i/4)}</text>`; }
+  days.forEach((d,i) => {
+    s += `<text x="${P.l+bw*(i+.5)}" y="${H-6}" text-anchor="middle">${d.slice(5)}</text>`;
+    keys.forEach(([k,c,n],j) => { const v = byDate[d]?.totals[k] || 0; if (!v) return; const h = v/maxY*ih, w = bw*.22;
+      s += `<rect x="${P.l+bw*i+bw*.17+j*(w+2)}" y="${P.t+ih-h}" width="${w}" height="${h}" rx="2" fill="${c}" data-tip="${d} · ${n} ${v}g"/>`; });
+  });
+  const PT = D.profile.target_protein_g; if (PT){ const y = P.t+ih*(1-PT/maxY); if (y>=P.t) s += `<line x1="${P.l}" x2="${MW-P.r}" y1="${y}" y2="${y}" stroke="var(--pro)" stroke-dasharray="4 4" opacity=".6"/><text x="${MW-P.r}" y="${y-4}" text-anchor="end">蛋白目标 ${PT}g</text>`; }
+  $('macroChart').innerHTML = `<svg viewBox="0 0 ${MW} ${H}">${s}</svg>`;
+}
+
+// ---- interactions ----
+const go = n => { cur = addDays(cur, n); renderDay(); };
+$('prev').onclick = () => go(-1); $('next').onclick = () => go(1);
+$('todayBtn').onclick = () => { cur = todayStr; renderDay(); };
+$('date').onchange = e => { if (e.target.value){ cur = e.target.value; renderDay(); } };
+document.addEventListener('keydown', e => { if (e.target.tagName==='INPUT') return;
+  if (e.key==='ArrowLeft') go(-1); if (e.key==='ArrowRight') go(1); if (e.key==='Escape') $('lb').style.display='none'; });
+document.addEventListener('click', e => {
+  const c = e.target.closest('.cal [data-d]'); if (c){ cur = c.dataset.d; renderDay(); return; }
+  if (e.target.matches('.thumbs img')){ const lb = $('lb'); lb.querySelector('img').src = e.target.src; lb.querySelector('p').textContent = e.target.dataset.cap; lb.style.display='flex'; return; }
+  if (e.target.closest('#lb')) $('lb').style.display='none';
+});
+const tip = $('tip');
+document.addEventListener('mousemove', e => { const t = e.target.dataset?.tip;
+  if (t){ tip.textContent = t; tip.style.display='block'; tip.style.left = e.clientX+12+'px'; tip.style.top = e.clientY-28+'px'; } else tip.style.display='none'; });
+$('foot').textContent = D.built_at ? `数据更新于 ${D.built_at} · 共 ${D.days.length} 天记录 · ←/→ 切换日期` : '还没有数据：运行 python3 diet.py build';
+renderDay();
+</script>
+</body>
+</html>

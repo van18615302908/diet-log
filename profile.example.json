@@ -1,0 +1,58 @@
+{
+  "about": "一段话写清楚你的情况：性别、年龄、身高、日常活动、运动项目、目标、饮食偏好/忌口。Claude 给建议时会先读这里。",
+  "sex": "male",
+  "_sex": "male / female",
+  "birth_year": 2000,
+  "height_cm": 175,
+  "weight_kg": 70,
+  "activity": "sedentary",
+  "_activity": "日常（不含训练）的活动系数：sedentary 1.2 / light 1.375 / moderate 1.55 / active 1.725。训练消耗用 diet.py exercise 按天单独加",
+  "goal": "lose",
+  "_goal": "lose 减脂 / maintain 维持 / gain 增肌",
+  "deficit_kcal": 500,
+  "_deficit": "减脂时每天的热量缺口，500 ≈ 每周 −0.45kg",
+  "target_protein_g": null,
+  "protein_g_per_kg": 1.8,
+  "_protein": "target_protein_g 留空就按 体重 × protein_g_per_kg 算",
+  "fat_g_range": [
+    50,
+    70
+  ],
+  "target_kcal": null,
+  "_target_kcal": "填数字就固定用这个，不再按天计算",
+  "target_body_fat_pct": null,
+  "target_weight_kg": null,
+  "nutrient_targets": {
+    "fiber": {
+      "min": 30
+    },
+    "sugar_added": {
+      "max": 36
+    },
+    "sodium": {
+      "max": 2300
+    },
+    "potassium": {
+      "min": 3400
+    },
+    "calcium": {
+      "min": 1000
+    },
+    "iron": {
+      "min": 8
+    },
+    "magnesium": {
+      "min": 400
+    },
+    "vit_c": {
+      "min": 90
+    },
+    "vit_d": {
+      "min": 15
+    },
+    "vit_a": {
+      "min": 900
+    }
+  },
+  "_nutrient_targets": "美国 DRI 19-30 岁男性；钠 2300mg 上限；添加糖按 AHA 男性 36g；纤维取 30g 现实目标(DRI 38)"
+}
